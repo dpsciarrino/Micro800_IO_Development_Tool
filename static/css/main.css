@@ -1,0 +1,59 @@
+.form-field {
+    display: inline-flexbox;
+}
+
+.form-field > label {
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+.form-field > select {
+    width: 50%;
+    margin-right: 10px;
+}
+
+.checkbox-field {
+    display: inline-block;
+    padding-right: 20px;
+    padding-bottom: 20px;
+}
+
+#header-container {
+    padding: 20px !important;
+    padding-bottom: 30px !important;
+    border: 0.2em !important;
+    border-color: black !important;
+    border-style: solid !important;
+}
+
+#controller-info-container {
+    padding: 20px !important;
+    padding-bottom: 30px !important;
+    border: 0.2em !important;
+    border-color: black !important;
+    border-style: solid !important;
+}
+
+#io-container {
+    padding: 20px !important;
+    padding-bottom: 30px !important;
+    border: 0.2em !important;
+    border-color: black !important;
+    border-style: solid !important;
+}
+
+#di_rungs_container {
+    padding: 20px !important;
+}
+
+#di_tags_container {
+    padding: 20px !important;
+}
+
+#do_rungs_container {
+    padding: 20px !important;
+}
+
+#do_tags_container {
+    padding: 20px !important;
+}

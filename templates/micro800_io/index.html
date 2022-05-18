@@ -1,0 +1,351 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Micro800 I/O Generator</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+        <link rel="stylesheet" href="{% static 'css/main.css' %}">
+        <script type="text/javascript">
+            function getToken(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getToken('csrftoken');
+
+            function getCookie(name) {
+                // Split cookie string and get all individual name=value pairs in an array
+                var cookieArr = document.cookie.split(";");
+
+                // Loop through the array elements
+                for(var i = 0; i < cookieArr.length; i++) {
+                    var cookiePair = cookieArr[i].split("=");
+
+                    /* Removing whitespace at the beginning of the cookie name
+                    and compare it with the given string */
+                    if(name == cookiePair[0].trim()) {
+                        // Decode the cookie value and return
+                        return decodeURIComponent(cookiePair[1]);
+                    }
+                }
+
+                // Return null if not found
+                return null;
+            }
+            var controller = JSON.parse(getCookie('controller'))
+
+            if (controller == undefined){
+                controller = {
+                    'product_line':'Micro810',
+                    'part_number':'2080-LC10-12AWA',
+                    'number_of_digital_inputs':8,
+                    'number_of_digital_outputs':4
+                }
+                const d = new Date();
+                expires = d.setTime(d.getTime() + (24*60*60*1000))
+                document.cookie ='controller=' + JSON.stringify(controller) + ";expires=" + expires + ";domain=;path=/"
+            }
+        </script>
+    </head>
+    <body>
+        <div id="header-container" class="container">
+            <div class="row">
+                <div class="col">
+                    <form id="form">
+                        <div class="container">
+                            <div class="row">
+                                {% csrf_token %}
+                                <h1>Micro800 Series I/O Generator</h1>
+                                <hr>
+                            </div>
+
+                            <div class="row">
+                                <div class="col col-sm-1">
+                                    <p>Controller:</p>
+                                </div>
+                                <div class="col col-sm-8">
+                                    <div class="form-field">
+                                        <!--<label for="controller">Controller:</label>-->
+                                        <select id="controller" class="form-control" name="controller">
+                                            {% for controller in controllers %}
+                                                {% if controller == part_number %}
+                                                <option selected value="{{ controller }}">{{ controller }}</option>
+                                                {% else %}
+                                                <option value="{{ controller }}">{{ controller }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col col-sm-3">
+                                    <input id="form-button" class="btn btn-success btn-block" type="submit" value="Continue">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="controller-info-container" class="container">
+            <h2>Controller Information</h2>
+            <hr>
+    
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <h3>Series:</h3>
+                        <p id="product-line">{{ product_line }}</p>
+                    </div>
+                    <div class="col">
+                        <h3>Part Number:</h3>
+                        <p id="part-number">{{ part_number }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <h3>Number of DIs:</h3>
+                        <p id="di-number">{{ number_of_digital_inputs }}</p>
+                    </div>
+                    <div class="col">
+                        <h3>Number of DOs:</h3>
+                        <p id="do-number">{{ number_of_digital_outputs }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div id="io-container" class="container">
+            <div class="row">
+                <h2>I/O Configuration</h2>
+            </div>
+            <hr>
+
+            <div class="row">
+                <h3>Digital Inputs</h3>
+            </div>
+
+            <div class="row">
+                <form id="di-form">
+                    {% csrf_token %}
+                    <div class="form-field checkbox-field">
+                        <label for="di_sim_tags">Include Simulator Tags:</label>
+                        <input type="checkbox" id="di_sim_tags" name="di_sim_tags" value="include_sim_tags">
+                    </div>
+                    <br>
+                    <div class="container">
+
+                        <div class="row">
+                            <div class="col"><h5>Digital Input Tag</h5></div>
+                            <div class="col"><h5>Direct/Invert</h5></div>
+                            <div class="col"><h5>Auxiliary Tag</h5></div>
+                            <div class="col"><h5>Auxiliary Tag Comment</h5></div>
+                        </div>
+
+                        {% for i in di_list %}
+                            <div class="row">
+                                {% if i < 10 %}
+                                    <div class="col">_IO_EM_DI_0{{i}}</div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label class="form-label" for="DI0{{i}}_direct">Direct/Invert:</label>-->
+                                            <select id="DI0{{i}}_direct" class="form-control" name="DI0{{i}}_direct">
+                                                <option selected value="Direct">Direct</option>
+                                                <option value="Invert">Invert</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DI0{{i}}_aux">Auxiliary Tag:</label>-->
+                                            <input type="text" id="DI0{{i}}_aux" name="DI0{{i}}_aux">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DI0{{i}}_aux_comment">Aux Tag Comment:</label>-->
+                                            <input type="text" id="DI0{{i}}_aux_comment" name="DI0{{i}}_aux_comment">
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="col">_IO_EM_DI_{{i}}</div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DI{{i}}_direct">Direct/Invert:</label>-->
+                                            <select id="DI{{i}}_direct" class="form-control" name="DI{{i}}_direct">
+                                                <option selected value="Direct">Direct</option>
+                                                <option value="Invert">Invert</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DI{{i}}_aux">Auxiliary Tag:</label>-->
+                                            <input type="text" id="DI{{i}}_aux" name="DI{{i}}_aux">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DI{{i}}_aux_comment">Aux Tag Comment:</label>-->
+                                            <input type="text" id="DI{{i}}_aux_comment" name="DI{{i}}_aux_comment">
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <br>
+                        {% endfor %}
+                    </div>
+
+                    <div class="container">
+                        <div class="row">
+                            <div class="col col-sm-6 text-center">
+                                <button type="button" id="di-rungs-btn" class="btn btn-success btn-block">Generate Input Rungs</button>
+                            </div>
+                            <div class="col col-sm-6 text-center">
+                                <button type="button" id="di-tags-btn" class="btn btn-success btn-block">Generate DI Tags</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="di_rungs_container" class="row">
+                <h5>Digital Input Ladder Logic Rungs:</h5>
+                <!--<label for="di_rungs_display">Digital Input Rungs:</label>-->
+                <textarea id="di_rungs_display" name="di_rungs_display" rows="{{ number_of_digital_inputs }}" cols = "100" style="text-align:left;overflow:auto;" readonly>
+                    Click 'Generate Input Rungs' above to calculate Ladder Logic...
+                </textarea>
+            </div>
+    
+            <div id="di_tags_container" class="row">
+                <h5>Digital Input Tags:</h5>
+                <!--<label for="di_tags_display">Digital Input Tags:</label>-->
+                <textarea id="di_tags_display" name="di_tags_display" rows="{{ number_of_digital_inputs }}" cols = "100" style="text-align:left;" readonly>
+                    Click 'Generate DI Tags' above to generate comma-separated digital input tag values...
+                </textarea>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <h3>Digital Outputs</h3>
+            </div>
+
+            <div class="row">
+                <form id="do-form">
+                    {% csrf_token %}
+                    <div class="form-field checkbox-field">
+                        <label for="do_sim_tags">Include Simulator Tags:</label>
+                        <input type="checkbox" id="do_sim_tags" name="do_sim_tags" value="include_sim_tags">
+                    </div>
+                    <br>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col"><h5>Digital Input Tag</h5></div>
+                            <div class="col"><h5>Direct/Invert</h5></div>
+                            <div class="col"><h5>Auxiliary Tag</h5></div>
+                            <div class="col"><h5>Auxiliary Tag Comment</h5></div>
+                        </div>
+
+                        {% for i in do_list %}
+                            <div class="row">
+                                {% if i < 10 %}
+                                    <div class="col">_IO_EM_DO_0{{i}}</div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DO0{{i}}_direct">Direct/Invert:</label>-->
+                                            <select id="DO0{{i}}_direct" class="form-control" name="DO0{{i}}_direct">
+                                                <option selected value="Direct">Direct</option>
+                                                <option value="Invert">Invert</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DO0{{i}}_aux">Auxiliary Tag:</label>-->
+                                            <input type="text" id="DO0{{i}}_aux" name="DO0{{i}}_aux">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DO0{{i}}_aux_comment">Aux Tag Comment:</label>-->
+                                            <input type="text" id="DO0{{i}}_aux_comment" name="DO0{{i}}_aux_comment">
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="col">_IO_EM_DO_{{i}}</div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DO{{i}}_direct">Direct/Invert:</label>-->
+                                            <select id="DO{{i}}_direct" class="form-control" name="DO{{i}}_direct">
+                                                <option selected value="Direct">Direct</option>
+                                                <option value="Invert">Invert</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DO{{i}}_aux">Auxiliary Tag:</label>-->
+                                            <input type="text" id="DO{{i}}_aux" name="DO{{i}}_aux">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-field">
+                                            <!--<label for="DO{{i}}_aux_comment">Aux Tag Comment:</label>-->
+                                            <input type="text" id="DO{{i}}_aux_comment" name="DO{{i}}_aux_comment">
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <br>
+                        {% endfor %}
+                    </div>
+
+                    <div class="container">
+                        <div class="row">
+                            <div class="col col-sm-6 text-center">
+                                <button type="button" id="do-rungs-btn" class="btn btn-success btn-block">Generate Output Rungs</button>
+                            </div>
+                            <div class="col col-sm-6 text-center">
+                                <button type="button" id="do-tags-btn" class="btn btn-success btn-block">Generate DO Tags</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="do_rungs_container" class="row">
+                <h5>Digital Output Ladder Logic Rungs:</h5>
+                <!--<label for="do_rungs_display">Digital Output Rungs:</label>-->
+                <textarea id="do_rungs_display" name="do_rungs_display" rows="{{ number_of_digital_outputs }}" cols = "100" style="text-align:left;overflow:auto;" readonly>
+                    Click 'Generate Output Rungs' above to calculate Ladder Logic...
+                </textarea>
+            </div>
+
+            <div id="do_tags_container" class="row">
+                <h5>Digital Output Tags:</h5>
+                <!--<label for="do_tags_display">Digital Output Tags:</label>-->
+                <textarea id="do_tags_display" name="do_tags_display" rows="{{ number_of_digital_outputs }}" cols = "100" style="text-align:left;" readonly>
+                    Click 'Generate DO Tags' above to generate comma-separated digital output tag values...
+                </textarea>
+            </div>
+
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-kjU+l4N0Yf4ZOJErLsIcvOU2qSb74wXpOhqTvwVx3OElZRweTnQ6d31fXEoRD1Jy" crossorigin="anonymous"></script>
+        <script src="{% static 'js/util.js' %}"></script>
+    </body>
+</html>
